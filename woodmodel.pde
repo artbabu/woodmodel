@@ -49,7 +49,9 @@ void setup() {
   //float cameraZ = (height/2.0) / tan(fov/2.0);
   //perspective(fov, float(width)/float(height), cameraZ/2.0, cameraZ*2.0);
   //noStroke();
+ 
   
+ 
    mainXTrans =  (width/2) + 128 ;
   mainYTrans = (height/2) - 272 ; 
   
@@ -299,11 +301,11 @@ void render(String prod,float sw)
     case '{':
     drawShape = true ;
         currShape = createShape(GROUP);
+        currShape.strokeWeight(sw);
      break; 
     case '}':
     translateX += distance ;
     currShape.translate(translateX,translateY,translateZ);
-    
     main.addChild(currShape);
     drawShape = false ;
      break; 
