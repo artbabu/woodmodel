@@ -7,7 +7,9 @@ import lsystem.collection.*;
 import lsystem.*;
 //import processing.opengl.*; // optimised for new version (else there is clipping)
 // It'll be even better when I get PShapes3D to work!!!
+import peasy.*;
  
+PeasyCam cam; 
 Grammar grammar;
  
 float distance = 20;
@@ -32,8 +34,10 @@ void setup() {
   println(" W ===> "+width); 
   ambientLight(80, 80, 80);
   directionalLight(100, 100, 100, -1, -1, 1);  
+   background(20, 20, 200);
+  lights();
   
-  
+// cam = new PeasyCam(this,0,0,0,1500); 
   
   
   //configureOpenGL();
@@ -41,10 +45,17 @@ void setup() {
   setupGrammar();
   main = createShape(GROUP);
   
-  float fov = PI/3.0;
-  float cameraZ = (height/2.0) / tan(fov/2.0);
-  perspective(fov, float(width)/float(height), cameraZ/2.0, cameraZ*2.0);
+  //float fov = PI/3.0;
+  //float cameraZ = (height/2.0) / tan(fov/2.0);
+  //perspective(fov, float(width)/float(height), cameraZ/2.0, cameraZ*2.0);
   //noStroke();
+  
+   mainXTrans =  (width/2) + 128 ;
+  mainYTrans = (height/2) - 272 ; 
+  
+  parseAndRender();
+  
+   
 }
  
 //void configureOpenGL() {
@@ -60,7 +71,7 @@ void setup() {
 void setupGrammar() {
   grammar = new SimpleGrammar(this, "A");   // this only required to allow applet to call dispose()
   grammar.addRule('A', "[xIIIyDDDzZT[rBBBr]]A");
-  grammar.addRule('B', "{HPHP|>HP~>HP<GRGR|>GR~>GR<}B");
+  grammar.addRule('B', "{GRGR|>GR~>GR<}B");
 //  grammar.addRule('C', "[]");
  // grammar.addRule('S', "F>F>F>F");
  // grammar.addRule('D', "1>CFB>F<B1>FA+F-A1+FB>F<B1>FC1^");
@@ -74,21 +85,20 @@ void setupGrammar() {
  
 void draw() {
  
-  mainXTrans =  (width/2) + 128 ;
-  mainYTrans = (height/2) - 272 ; 
-   background(20, 20, 200);
-  lights();
+ 
+ //  background(20, 20, 200);
   
  
   
   //shape(main);
- parseAndRender();
+ 
 
 }
  
 void parseAndRender()
 {
     boolean render = false ;
+    float sw = 4 ;
     char[] csArray = production.toCharArray();
     
      for (int i=0; i<csArray.length;i++) 
@@ -130,15 +140,20 @@ void parseAndRender()
        {
          if(!render)
            {
+             pushStyle();
+             sw++;
              render = true ;
              String subPartStr = getsubPartStr(csArray,csArray[i],i+1);
              i += subPartStr.length();
              println(" sub String "+subPartStr);
               shape(main);
-              render(subPartStr);
+              render(subPartStr,sw);
            }
          else
+         {
+            popStyle();
             render = false;
+         }   
        }
          break;
         default:
@@ -187,7 +202,7 @@ int updateMainTranslateCoor(char[] csArray,char axis,int pos)
  * according to lsystem rules (ie whenever there is an 'F').
  */
  
-void render(String prod)
+void render(String prod,float sw)
 //void render()
 {
   
