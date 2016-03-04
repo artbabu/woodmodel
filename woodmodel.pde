@@ -11,13 +11,14 @@ import peasy.*;
  
 PeasyCam cam; 
 Grammar grammar;
- 
-float distance = 20;
-float hDis = distance * 5;
+
 float mainXTrans = 0 ;
 float mainYTrans = 0 ;
 float mainZTrans = 0 ;
-int depth = 2;
+    
+float distance = 20;
+float hDis = distance * 5;
+int depth = 5;
 
 float def_ang =0; 
 PShape main ;
@@ -70,7 +71,7 @@ void setup() {
  
 void setupGrammar() {
   grammar = new SimpleGrammar(this, "A");   // this only required to allow applet to call dispose()
-  grammar.addRule('A', "[[rBBBr]xIIIyDDDzZT]A");
+  grammar.addRule('A', "[[rBBBr]xIIIyZzDDDT]A");
   grammar.addRule('B', "{HP~HP>|HP>~HP<GR~GR>|GR>~GR<}B");
 //  grammar.addRule('C', "[]");
  // grammar.addRule('S', "F>F>F>F");
@@ -97,8 +98,10 @@ void draw() {
  
 void parseAndRender()
 {
+    
+    
     boolean render = false ;
-    float sw = 4 ;
+    float sw = 6 ;
     char[] csArray = production.toCharArray();
     
      PShape cellRow = createShape(GROUP) ;
@@ -112,21 +115,21 @@ void parseAndRender()
         // increment x for main shape
        case 'x' : 
            pos = updateMainTranslateCoor(csArray,csArray[i],i+1);
-          i = pos ;
+           i = pos ;
           break ;
        case 'y' : 
            pos = updateMainTranslateCoor(csArray,csArray[i],i+1);
-          i = pos ;
+           i = pos ;
           break ;
        case 'z' : 
-          pos = updateMainTranslateCoor(csArray,csArray[i],i+1);
-          i = pos ;
+         pos = updateMainTranslateCoor(csArray,csArray[i],i+1);
+         i = pos ;
           break ;   
        case 'T' :
            println(" X ===> "+mainXTrans);
            println(" Y ===> "+mainYTrans);
            println(" Z ===> "+mainZTrans);
-           cellRow.translate( mainXTrans,  mainYTrans, mainZTrans);
+          cellRow.translate( mainXTrans,  mainYTrans, mainZTrans);
           rotateX( 2 * PI/3);
            rotateY( 2 * PI/3);
          // rotateX(frameCount * 0.5f);
@@ -147,9 +150,13 @@ void parseAndRender()
              String subPartStr = getsubPartStr(csArray,csArray[i],i+1);
              i += subPartStr.length();
              println(" sub String "+subPartStr);
-             shape(main);
+             //shape(main);
              cellRow = createShape(GROUP);
+              //mainXTrans += (5*3) ; 
+              //mainZTrans += (5*3) ; 
+              //cellRow.translate( mainXTrans,  mainYTrans, mainZTrans);
               render(subPartStr,sw,cellRow);
+           
               main.addChild(cellRow);
               if(sw > 4)
               sw = sw - 1 ; 
@@ -211,12 +218,12 @@ void render(String prod,float sw,PShape cellRow)
 //void render()
 {
   println("stroke :"+ sw);
+  int faceCount = 0 ;
   float translateX = 0 ;
   float translateY = 0 ;
   float translateZ = 0 ;
   boolean drawShape = false ;
   
-  boolean doVertTransShape = false ;
   PShape currShape = createShape() ;
   PShape currFace = createShape();
   int repeats = 1;
@@ -237,17 +244,20 @@ void render(String prod,float sw,PShape cellRow)
     switch (csArray[i]) {
     case 'F':
     i++ ;
-     currFace = drawFace(distance,csArray[i],sw,currAngle);
+    faceCount++;
+     currFace = drawFace(distance,csArray[i],sw,currAngle,((faceCount % 2 == 0)? true : false));
        currShape.addChild(currFace);
       break;
      case 'G':
      i++ ;
-      currFace = drawFace(distance/2,csArray[i],sw,currAngle);
+     faceCount++;
+      currFace = drawFace(distance/2,csArray[i],sw,currAngle,((faceCount % 2 == 0)? true : false));
        currShape.addChild(currFace);
       break;
      case 'H':
      i++ ;
-      currFace = drawFace(distance/4,csArray[i],sw,currAngle);
+     faceCount++;
+      currFace = drawFace(distance/4,csArray[i],sw,currAngle,((faceCount % 2 == 0)? true : false));
        currShape.addChild(currFace);
       break;
      case 'f':
@@ -336,7 +346,7 @@ void render(String prod,float sw,PShape cellRow)
     }
   }
 }
-PShape drawFace(float dis,char type,float sw,float ang)
+PShape drawFace(float dis,char type,float sw,float ang, boolean isPore)
 { 
   
   println(" Angle ======> "+ang+" "+type);
@@ -356,7 +366,7 @@ PShape drawFace(float dis,char type,float sw,float ang)
         shape.vertex(+(l), +hDis, +l);
         shape.vertex(-(l), +hDis, +l);
         
-        if(ang == 90)
+        if(isPore)
           insertPorousintoWall(shape,l,hDis);
        
         
@@ -374,7 +384,7 @@ PShape drawFace(float dis,char type,float sw,float ang)
         shape.vertex(+(l), -hDis, +l);
         shape.vertex(+(l), +hDis, +l);
         shape.vertex(-(l), +hDis, +l);
-        if(ang == 90)
+        if(isPore)
           insertPorousintoWall(shape,l,hDis);
        
       }
@@ -389,7 +399,7 @@ void insertPorousintoWall(PShape cellWall,float x,float y)
   
   println(" x :"+x+" y :"+y);
   int holeRes = 50 ;
-  float holeRad = x / 2 ;
+  float holeRad = x / 3 ;
   
   float incY = y / 5 ;
     float py = incY - y;
@@ -400,7 +410,7 @@ void insertPorousintoWall(PShape cellWall,float x,float y)
   {
    float angle = TWO_PI  * i / holeRes;
    float cx = sin(  angle ) * (holeRad);
-   float cy = py + cos(  angle  ) * (2*holeRad);
+   float cy = py + cos(  angle  ) * (holeRad);
    cellWall.vertex( cx, cy,x);     
   }
   cellWall.endContour();
