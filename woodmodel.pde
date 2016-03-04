@@ -19,7 +19,7 @@ float mainYTrans = 0 ;
 float mainZTrans = 0 ;
 int depth = 10;
 
-float def_ang =radians(90) ; 
+float def_ang =0; 
 PShape main ;
 float PHI_BY_2 = radians(90);
 float PHI = radians(180);
@@ -37,7 +37,7 @@ void setup() {
    background(20, 20, 200);
   lights();
   
-// cam = new PeasyCam(this,0,0,0,1500); 
+ cam = new PeasyCam(this,0,0,0,1500); 
   
   
   //configureOpenGL();
@@ -73,7 +73,7 @@ void setup() {
 void setupGrammar() {
   grammar = new SimpleGrammar(this, "A");   // this only required to allow applet to call dispose()
   grammar.addRule('A', "[xIIIyDDDzZT[rBBBr]]A");
-  grammar.addRule('B', "{GRGR|>GR~>GR<}B");
+  grammar.addRule('B', "{HP~HP>|HP>~HP<GR~GR>|GR>~GR<}B");
 //  grammar.addRule('C', "[]");
  // grammar.addRule('S', "F>F>F>F");
  // grammar.addRule('D', "1>CFB>F<B1>FA+F-A1+FB>F<B1>FC1^");
@@ -100,7 +100,7 @@ void draw() {
 void parseAndRender()
 {
     boolean render = false ;
-    float sw = 4 ;
+    float sw = 10 ;
     char[] csArray = production.toCharArray();
     
      for (int i=0; i<csArray.length;i++) 
@@ -127,10 +127,10 @@ void parseAndRender()
            println(" Y ===> "+mainYTrans);
            println(" Z ===> "+mainZTrans);
           translate( mainXTrans,  mainYTrans, mainZTrans);
-           rotateX(2 * PI/3);
-            rotateY(2 * PI/3);
-          // rotateX(frameCount * 0.5f);
-          //  rotateY(frameCount * 0.5f); 
+          rotateX( 2 * PI/3);
+           rotateY( 2 * PI/3);
+         // rotateX(frameCount * 0.5f);
+           // rotateY(frameCount * 0.5f); 
           break ;
        case '[' :  
            pushMatrix();
@@ -143,13 +143,14 @@ void parseAndRender()
          if(!render)
            {
              pushStyle();
-             sw++;
              render = true ;
              String subPartStr = getsubPartStr(csArray,csArray[i],i+1);
              i += subPartStr.length();
              println(" sub String "+subPartStr);
               shape(main);
               render(subPartStr,sw);
+              if(sw > 4)
+              sw = sw - 1 ; 
            }
          else
          {
@@ -207,7 +208,7 @@ int updateMainTranslateCoor(char[] csArray,char axis,int pos)
 void render(String prod,float sw)
 //void render()
 {
-  
+  println("stroke :"+ sw);
   float translateX = 0 ;
   float translateY = 0 ;
   float translateZ = 0 ;
@@ -217,7 +218,8 @@ void render(String prod,float sw)
   PShape currShape = createShape() ;
   PShape currFace = createShape();
   int repeats = 1;
-  float ang = def_ang ;
+  float ang = radians(def_ang) ;
+  float currAngle = def_ang;
   fill(191, 191, 191);
   ambient(122, 122, 122);
   lightSpecular(30, 30, 30);
@@ -233,17 +235,17 @@ void render(String prod,float sw)
     switch (csArray[i]) {
     case 'F':
     i++ ;
-     currFace = drawFace(distance,csArray[i]);
+     currFace = drawFace(distance,csArray[i],sw,currAngle);
        currShape.addChild(currFace);
       break;
      case 'G':
      i++ ;
-      currFace = drawFace(distance/2,csArray[i]);
+      currFace = drawFace(distance/2,csArray[i],sw,currAngle);
        currShape.addChild(currFace);
       break;
      case 'H':
      i++ ;
-      currFace = drawFace(distance/4,csArray[i]);
+      currFace = drawFace(distance/4,csArray[i],sw,currAngle);
        currShape.addChild(currFace);
       break;
      case 'f':
@@ -300,8 +302,7 @@ void render(String prod,float sw)
       break;  
     case '{':
     drawShape = true ;
-        currShape = createShape(GROUP);
-        currShape.strokeWeight(sw);
+    currShape = createShape(GROUP);
      break; 
     case '}':
     translateX += distance ;
@@ -311,10 +312,15 @@ void render(String prod,float sw)
      break; 
    case '|':
      ang = radians(180);
+     currAngle = 180 ;
       break;
    case '~':
      ang = radians(90);
-      break;    
+     currAngle = 90 ;
+      break; 
+   case '#' :
+      ang = radians(def_ang);
+     currAngle = 0 ;
     case '1':
       repeats += 1;
       break; 
@@ -328,10 +334,13 @@ void render(String prod,float sw)
     }
   }
 }
-PShape drawFace(float dis,char type)
+PShape drawFace(float dis,char type,float sw,float ang)
 { 
+  
+  println(" Angle ======> "+ang+" "+type);
   PShape shape = createShape();
   shape.beginShape(POLYGON);
+  //shape.strokeWeight(sw);
   shape.fill(255, 255, 255);
   
   float l = dis ;
@@ -344,6 +353,11 @@ PShape drawFace(float dis,char type)
         shape.vertex(+(l), -hDis, +l);
         shape.vertex(+(l), +hDis, +l);
         shape.vertex(-(l), +hDis, +l);
+        
+        if(ang == 90)
+          insertPorousintoWall(shape,l,hDis);
+       
+        
       }else if(type == 'S')
       {
         shape.vertex(-(l), -l, +hDis);
@@ -354,10 +368,13 @@ PShape drawFace(float dis,char type)
       {
         l = l + 2 ;
         b = (10 * dis) ;
-        shape.vertex(-(l), -hDis, +l);
+         shape.vertex(-(l), -hDis, +l);
         shape.vertex(+(l), -hDis, +l);
         shape.vertex(+(l), +hDis, +l);
         shape.vertex(-(l), +hDis, +l);
+        if(ang == 90)
+          insertPorousintoWall(shape,l,hDis);
+       
       }
    
      shape.endShape(CLOSE); 
@@ -365,6 +382,31 @@ PShape drawFace(float dis,char type)
      return shape ;  
     
 } 
+void insertPorousintoWall(PShape cellWall,float x,float y)
+{
+  
+  println(" x :"+x+" y :"+y);
+  int holeRes = 50 ;
+  float holeRad = x / 2 ;
+  
+  float incY = y / 5 ;
+    float py = incY - y;
+ while( py < y)
+ {
+   cellWall.beginContour();
+  for(int i = 0 ; i < holeRes;i++)
+  {
+   float angle = TWO_PI  * i / holeRes;
+   float cx = sin(  angle ) * (holeRad);
+   float cy = py + cos(  angle  ) * (2*holeRad);
+   cellWall.vertex( cx, cy,x);     
+  }
+  cellWall.endContour();
+  py = py + incY ;
+ }
+  
+  
+}
 void drawEmptyVertex(float dis)
 {
 }
