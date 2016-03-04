@@ -17,7 +17,7 @@ float hDis = distance * 5;
 float mainXTrans = 0 ;
 float mainYTrans = 0 ;
 float mainZTrans = 0 ;
-int depth = 10;
+int depth = 2;
 
 float def_ang =0; 
 PShape main ;
@@ -30,20 +30,19 @@ void setup() {
   //size(800, 600, OPENGL);
    size(1200, 1000, P3D);
    
-   println(" H ===> "+height);
-  println(" W ===> "+width); 
+  mainXTrans =  (width/2) + 128 ;
+  mainYTrans = (height/2) - 272 ; 
+  
   ambientLight(80, 80, 80);
   directionalLight(100, 100, 100, -1, -1, 1);  
    background(20, 20, 200);
   lights();
-  
- cam = new PeasyCam(this,0,0,0,1500); 
-  
-  
+ 
   //configureOpenGL();
   LUT.initialize();
   setupGrammar();
   main = createShape(GROUP);
+  parseAndRender();
   
   //float fov = PI/3.0;
   //float cameraZ = (height/2.0) / tan(fov/2.0);
@@ -52,11 +51,10 @@ void setup() {
  
   
  
-   mainXTrans =  (width/2) + 128 ;
-  mainYTrans = (height/2) - 272 ; 
   
-  parseAndRender();
+ 
   
+ cam = new PeasyCam(this,0,0,0,1500); 
    
 }
  
@@ -72,7 +70,7 @@ void setup() {
  
 void setupGrammar() {
   grammar = new SimpleGrammar(this, "A");   // this only required to allow applet to call dispose()
-  grammar.addRule('A', "[xIIIyDDDzZT[rBBBr]]A");
+  grammar.addRule('A', "[[rBBBr]xIIIyDDDzZT]A");
   grammar.addRule('B', "{HP~HP>|HP>~HP<GR~GR>|GR>~GR<}B");
 //  grammar.addRule('C', "[]");
  // grammar.addRule('S', "F>F>F>F");
@@ -88,11 +86,11 @@ void setupGrammar() {
 void draw() {
  
  
- //  background(20, 20, 200);
+ background(20, 20, 200);
   
  
   
-  //shape(main);
+  shape(main);
  
 
 }
@@ -100,8 +98,10 @@ void draw() {
 void parseAndRender()
 {
     boolean render = false ;
-    float sw = 10 ;
+    float sw = 4 ;
     char[] csArray = production.toCharArray();
+    
+     PShape cellRow = createShape(GROUP) ;
     
      for (int i=0; i<csArray.length;i++) 
     {
@@ -126,7 +126,7 @@ void parseAndRender()
            println(" X ===> "+mainXTrans);
            println(" Y ===> "+mainYTrans);
            println(" Z ===> "+mainZTrans);
-          translate( mainXTrans,  mainYTrans, mainZTrans);
+           cellRow.translate( mainXTrans,  mainYTrans, mainZTrans);
           rotateX( 2 * PI/3);
            rotateY( 2 * PI/3);
          // rotateX(frameCount * 0.5f);
@@ -147,8 +147,10 @@ void parseAndRender()
              String subPartStr = getsubPartStr(csArray,csArray[i],i+1);
              i += subPartStr.length();
              println(" sub String "+subPartStr);
-              shape(main);
-              render(subPartStr,sw);
+             shape(main);
+             cellRow = createShape(GROUP);
+              render(subPartStr,sw,cellRow);
+              main.addChild(cellRow);
               if(sw > 4)
               sw = sw - 1 ; 
            }
@@ -205,7 +207,7 @@ int updateMainTranslateCoor(char[] csArray,char axis,int pos)
  * according to lsystem rules (ie whenever there is an 'F').
  */
  
-void render(String prod,float sw)
+void render(String prod,float sw,PShape cellRow)
 //void render()
 {
   println("stroke :"+ sw);
@@ -307,7 +309,7 @@ void render(String prod,float sw)
     case '}':
     translateX += distance ;
     currShape.translate(translateX,translateY,translateZ);
-    main.addChild(currShape);
+    cellRow.addChild(currShape);
     drawShape = false ;
      break; 
    case '|':
@@ -340,7 +342,7 @@ PShape drawFace(float dis,char type,float sw,float ang)
   println(" Angle ======> "+ang+" "+type);
   PShape shape = createShape();
   shape.beginShape(POLYGON);
-  //shape.strokeWeight(sw);
+  shape.strokeWeight(sw);
   shape.fill(255, 255, 255);
   
   float l = dis ;
