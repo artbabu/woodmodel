@@ -18,7 +18,7 @@ float mainZTrans = 0 ;
     
 float distance = 20;
 float hDis = distance * 5;
-int depth = 5;
+int depth = 10;
 
 float def_ang =0; 
 PShape main ;
@@ -71,8 +71,9 @@ void setup() {
  
 void setupGrammar() {
   grammar = new SimpleGrammar(this, "A");   // this only required to allow applet to call dispose()
-  grammar.addRule('A', "[[rBBBr]xIIIyZzDDDT]A");
-  grammar.addRule('B', "{HP~HP>|HP>~HP<GR~GR>|GR>~GR<}B");
+  grammar.addRule('A', "[[rBBBr]xIyZzIIIIT]A");
+  grammar.addRule('B', "{C}+{C}+{C}+{C}");
+  grammar.addRule('C', "HP~HP>|HP>~HP<GR~GR>|GR>~GR<");
 //  grammar.addRule('C', "[]");
  // grammar.addRule('S', "F>F>F>F");
  // grammar.addRule('D', "1>CFB>F<B1>FA+F-A1+FB>F<B1>FC1^");
@@ -101,7 +102,7 @@ void parseAndRender()
     
     
     boolean render = false ;
-    float sw = 6 ;
+    float sw = 10 ;
     char[] csArray = production.toCharArray();
     
      PShape cellRow = createShape(GROUP) ;
@@ -188,7 +189,7 @@ int updateMainTranslateCoor(char[] csArray,char axis,int pos)
   int i = 0;
   Map<Character,Integer> charValueMap = new HashMap<Character,Integer>();
   charValueMap.put('I', 5);
-  charValueMap.put('D', 3);
+  charValueMap.put('D', 5);
   charValueMap.put('Z', 0);
   /*
   * I -> iiii { i means increament 1 to axis coor}
